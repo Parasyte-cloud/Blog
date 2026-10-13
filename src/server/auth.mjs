@@ -18,7 +18,19 @@ export async function workspaceRpc(request, env, name, args, fetcher = fetch) {
       method: 'POST', headers: { Authorization: `Bearer ${token}`, apikey: env.WORKSPACE_SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
       body: JSON.stringify(args || {}), signal: AbortSignal.timeout(8000), redirect: 'error',
     });
-  } catch { throw new HttpError(503, 'The workspace identity service is temporarily unavailable. No changes were made.'); }
+  } catch (error) {
+    console.error('Blog Studio workspace RPC fetch failed', {
+      rpc: name,
+      supabase_origin: base.origin,
+      error_name: error?.name,
+      error_message: error?.message,
+    });
+
+    throw new HttpError(
+      503,
+      'The workspace identity service is temporarily unavailable. No changes were made.'
+    );
+  }
   if (response.status === 401) throw new HttpError(401, 'Your workspace session has expired. Sign in again.');
   if (response.status === 403) throw new HttpError(403, 'Your workspace account does not have permission for this action.');
   if (response.status === 409) throw new HttpError(409, 'This access assignment changed. Refresh and try again.');
