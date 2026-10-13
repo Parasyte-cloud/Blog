@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync,existsSync} from 'node:fs';
 import {renderMarkdown} from '../src/server/render.mjs';import {handleRequest} from '../src/server/app.mjs';import {fixture,SAMPLE} from './helpers.mjs';
 function setup(t){const f=fixture(handleRequest);t.after(()=>f.close());return f;}
 test('Markdown renders semantic headings and safe inline formatting',()=>{const h=renderMarkdown('## Arriving well\n\n**Plan ahead** and `check` your details.\n\n- First\n- Second');assert.match(h,/<h2 id="section-1">Arriving well<\/h2>/);assert.match(h,/<strong>Plan ahead<\/strong>/);assert.match(h,/<ul>/);});
@@ -43,4 +43,49 @@ test('published article exposes linked attachments as safe download links but no
   const html=await (await f.send('/stories/'+post.slug,{as:null,origin:null})).text();
   assert.match(html,/Downloads/);assert.match(html,/Passenger guide\.pdf/);assert.match(html,new RegExp(`/attachments/${attachment.id}`));
   assert.doesNotMatch(html,/Private source\.pdf/);assert.doesNotMatch(html,new RegExp(source.id));
+});
+
+test('homepage renders the five-step RideArrivo visual journey using local assets', async t => {
+  const f=setup(t);
+  const r=await f.send('/',{as:null,origin:null});
+  assert.equal(r.status,200);
+  const h=await r.text();
+  assert.match(h,/class="journey-showcase/);
+  for (let i=1;i<=5;i++) {
+    assert.match(h,new RegExp(`/assets/journey-steps/step-${i}\\.webp`));
+    assert.match(h,new RegExp(`data-journey-panel="${i}"`));
+    assert.match(h,new RegExp(`step-${i}\\.webp[^>]+width="1122" height="1402"`));
+  }
+  assert.match(h,/aria-label="Five steps from booking to arrival"/);
+});
+
+test('journey showcase is home-only and keeps filtered story pages focused on results', async t => {
+  const f=setup(t);
+  const r=await f.send('/?category=Mobility',{as:null,origin:null});
+  assert.equal(r.status,200);
+  const h=await r.text();
+  assert.doesNotMatch(h,/journey-showcase/);
+});
+
+test('journey effect has crack-panel styling, mobile scroll-snap fallback and reduced-motion support', () => {
+  const css=readFileSync('public/journal.css','utf8');
+  const js=readFileSync('public/journal.js','utf8');
+  assert.match(css,/\.journey-panel[^}]*clip-path:/s);
+  assert.match(css,/scroll-snap-type:\s*x mandatory/);
+  assert.match(css,/@media\(prefers-reduced-motion:reduce\)[\s\S]*journey/s);
+  assert.match(js,/data-journey-panel/);
+  assert.match(js,/motion-paused/);
+});
+
+test('journey showcase assets are checked into the Blog rather than hotlinked', () => {
+  for (let i=1;i<=5;i++) assert.equal(existsSync(`public/assets/journey-steps/step-${i}.webp`),true);
+});
+
+test('journey images do not compete with the hero for initial bandwidth', async t => {
+  const f=setup(t);
+  const r=await f.send('/',{as:null,origin:null});
+  const h=await r.text();
+  const journey=h.match(/<section class="journey-showcase[\s\S]*?<\/section>/)?.[0] || '';
+  assert.equal((journey.match(/loading="lazy"/g)||[]).length,5);
+  assert.doesNotMatch(journey,/loading="eager"/);
 });

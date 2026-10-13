@@ -14,6 +14,13 @@
     const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target);}}),{threshold:.08});
     document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
   }
-  const progress=document.querySelector('.reading-progress'), article=document.getElementById('article-body');
+  const journeyPanels=[...document.querySelectorAll('[data-journey-panel]')];
+if(journeyPanels.length){
+let active=Math.max(0,journeyPanels.findIndex(panel=>panel.classList.contains('is-active')));
+const setActive=index=>{active=(index+journeyPanels.length)%journeyPanels.length;journeyPanels.forEach((panel,i)=>{const on=i===active;panel.classList.toggle('is-active',on);panel.setAttribute('aria-pressed',String(on));});};
+journeyPanels.forEach((panel,index)=>{panel.addEventListener('mouseenter',()=>setActive(index));panel.addEventListener('focus',()=>setActive(index));panel.addEventListener('click',()=>setActive(index));});
+setInterval(()=>{if(document.hidden||reduced.matches||document.documentElement.classList.contains('motion-paused'))return;setActive(active+1);},4200);
+}
+const progress=document.querySelector('.reading-progress'), article=document.getElementById('article-body');
   if(progress&&article){let queued=false;const update=()=>{const rect=article.getBoundingClientRect();const total=rect.height-window.innerHeight+120;progress.value=Math.max(0,Math.min(100,(120-rect.top)/Math.max(1,total)*100));queued=false;};window.addEventListener('scroll',()=>{if(!queued){queued=true;requestAnimationFrame(update);}},{passive:true});window.addEventListener('resize',update);update();}
 })();
