@@ -16,7 +16,7 @@ export async function workspaceRpc(request, env, name, args, fetcher = fetch) {
   try {
     response = await fetcher(`${base.origin}/rest/v1/rpc/${name}`, {
       method: 'POST', headers: { Authorization: `Bearer ${token}`, apikey: env.WORKSPACE_SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify(args || {}), signal: AbortSignal.timeout(8000), redirect: 'error',
+      body: JSON.stringify(args || {}), signal: AbortSignal.timeout(8000), redirect: 'manual',
     });
   } catch (error) {
     console.error('Blog Studio workspace RPC fetch failed', {
