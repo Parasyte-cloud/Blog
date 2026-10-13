@@ -1,0 +1,6 @@
+SYNTAX PASS src/modules/BlogStudio.tsx
+SYNTAX PASS src/lib/blogStudio.ts
+SYNTAX PASS src/lib/blogPolicy.ts
+SYNTAX PASS src/App.tsx
+SYNTAX PASS src/lazy-routes.tsx
+SYNTAX PASS src/lib/workspaceNav.ts

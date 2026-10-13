@@ -1,0 +1,373 @@
+
+> ridearrivo-workspace@1.0.0 test
+> node scripts/run-tests.mjs
+
+PASS admin-delete-pending.test.mjs
+PASS admin-payment-provider-oversight-contract.mjs
+PASS backup-dispatch.test.mjs
+PASS backup-health-alerts.test.mjs
+FAIL backup-health.test.mjs
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v22.16.0
+# Subtest: scripts/backup-health.test.mjs
+not ok 1 - scripts/backup-health.test.mjs
+  ---
+  duration_ms: 36.855337
+  type: 'test'
+  location: '/mnt/data/work/RA-workspace/scripts/backup-health.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 43.147726
+
+
+PASS birthdays.test.mjs
+PASS blog-studio.test.mjs
+PASS calendar-full.test.mjs
+FAIL calendar-logic.test.mjs
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v22.16.0
+# Subtest: scripts/calendar-logic.test.mjs
+not ok 1 - scripts/calendar-logic.test.mjs
+  ---
+  duration_ms: 34.834697
+  type: 'test'
+  location: '/mnt/data/work/RA-workspace/scripts/calendar-logic.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41.772539
+
+
+PASS calendar-occasions.test.mjs
+PASS call-alerts.test.mjs
+FAIL chat-attachments.test.mjs
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v22.16.0
+# Subtest: scripts/chat-attachments.test.mjs
+not ok 1 - scripts/chat-attachments.test.mjs
+  ---
+  duration_ms: 37.751458
+  type: 'test'
+  location: '/mnt/data/work/RA-workspace/scripts/chat-attachments.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 44.518123
+
+
+PASS chat-calling.test.mjs
+FAIL chat-calls.test.mjs
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v22.16.0
+# Subtest: scripts/chat-calls.test.mjs
+not ok 1 - scripts/chat-calls.test.mjs
+  ---
+  duration_ms: 35.565862
+  type: 'test'
+  location: '/mnt/data/work/RA-workspace/scripts/chat-calls.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 42.528686
+
+
+PASS chat-notifications.test.mjs
+PASS chat-reply-archive-delete.test.mjs
+FAIL chat-voice-export.test.mjs
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v22.16.0
+# Subtest: scripts/chat-voice-export.test.mjs
+not ok 1 - scripts/chat-voice-export.test.mjs
+  ---
+  duration_ms: 36.92719
+  type: 'test'
+  location: '/mnt/data/work/RA-workspace/scripts/chat-voice-export.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 43.380729
+
+
+PASS clear-finished-work.test.mjs
+PASS department-heads.test.mjs
+FAIL finance-sheets.test.mjs
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v22.16.0
+# Subtest: scripts/finance-sheets.test.mjs
+not ok 1 - scripts/finance-sheets.test.mjs
+  ---
+  duration_ms: 37.202183
+  type: 'test'
+  location: '/mnt/data/work/RA-workspace/scripts/finance-sheets.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 44.93406
+
+
+PASS forms-analytics.test.mjs
+PASS forms-hero-image.test.mjs
+PASS hr-department-admin.test.mjs
+PASS hr-details-access.test.mjs
+PASS intake-client-contract.test.mjs
+PASS intake-detail-workflow.test.mjs
+PASS intake-inbox-contract.test.mjs
+PASS intake-service-validation.test.mjs
+PASS intake-support-wiring.test.mjs
+FAIL late-booking.test.mjs
+#   code: 'ERR_UNKNOWN_FILE_EXTENSION'
+# }
+# Node.js v22.16.0
+# Subtest: scripts/late-booking.test.mjs
+not ok 1 - scripts/late-booking.test.mjs
+  ---
+  duration_ms: 34.853768
+  type: 'test'
+  location: '/mnt/data/work/RA-workspace/scripts/late-booking.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41.083543
+
+
+PASS marketing-creator-management.test.mjs
+PASS marketing-intelligence-security.test.mjs
+PASS marketing-intelligence-ui.test.mjs
+PASS marketing-tracking-link-management.test.mjs
+PASS marketing-wallet-state-machine-contract.mjs
+PASS marketing-wallet-workstation-contract.mjs
+PASS migration-sql-sanity.test.mjs
+PASS my-leave.test.mjs
+PASS people-hr.test.mjs
+PASS phone-shell.test.mjs
+FAIL push-notifications.test.mjs
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v22.16.0
+# Subtest: scripts/push-notifications.test.mjs
+not ok 1 - scripts/push-notifications.test.mjs
+  ---
+  duration_ms: 34.35514
+  type: 'test'
+  location: '/mnt/data/work/RA-workspace/scripts/push-notifications.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41.06173
+
+
+PASS reporting-manager-directory-contract.mjs
+FAIL room7-admission.test.mjs
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v22.16.0
+# Subtest: scripts/room7-admission.test.mjs
+not ok 1 - scripts/room7-admission.test.mjs
+  ---
+  duration_ms: 36.307423
+  type: 'test'
+  location: '/mnt/data/work/RA-workspace/scripts/room7-admission.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 43.229412
+
+
+FAIL room7-guest-ready.test.mjs
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v22.16.0
+# Subtest: scripts/room7-guest-ready.test.mjs
+not ok 1 - scripts/room7-guest-ready.test.mjs
+  ---
+  duration_ms: 35.643188
+  type: 'test'
+  location: '/mnt/data/work/RA-workspace/scripts/room7-guest-ready.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 43.167986
+
+
+PASS room7-pwa.test.mjs
+PASS service-role-grants.test.mjs
+PASS service-worker.test.mjs
+FAIL signin-recovery.test.mjs
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v22.16.0
+# Subtest: scripts/signin-recovery.test.mjs
+not ok 1 - scripts/signin-recovery.test.mjs
+  ---
+  duration_ms: 34.850747
+  type: 'test'
+  location: '/mnt/data/work/RA-workspace/scripts/signin-recovery.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41.316683
+
+
+PASS support-assisted-booking-workstation-contract.mjs
+PASS whatsapp-runtime-security.test.mjs
+PASS whatsapp-security-contract.mjs
+FAIL workspace-nav.test.mjs
+#   code: 'ERR_MODULE_NOT_FOUND'
+# }
+# Node.js v22.16.0
+# Subtest: scripts/workspace-nav.test.mjs
+not ok 1 - scripts/workspace-nav.test.mjs
+  ---
+  duration_ms: 37.017443
+  type: 'test'
+  location: '/mnt/data/work/RA-workspace/scripts/workspace-nav.test.mjs:1:1'
+  failureType: 'testCodeFailure'
+  exitCode: 1
+  signal: ~
+  error: 'test failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 44.643961
+
+
+PASS workspace-search.test.mjs
+PASS zoho-multi-mailbox-runtime-contract.mjs
+PASS zoho-oauth-lifecycle-security-contract.mjs
+
+43/55 suites passed

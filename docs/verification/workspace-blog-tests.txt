@@ -1,0 +1,84 @@
+TAP version 13
+# (node:4771) ExperimentalWarning: stripTypeScriptTypes is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Blog origin defaults to the canonical site
+ok 1 - Blog origin defaults to the canonical site
+  ---
+  duration_ms: 1.237667
+  type: 'test'
+  ...
+# Subtest: workspace tokens may only be sent to explicitly trusted Blog origins
+ok 2 - workspace tokens may only be sent to explicitly trusted Blog origins
+  ---
+  duration_ms: 0.419201
+  type: 'test'
+  ...
+# Subtest: localhost API allowed only in development
+ok 3 - localhost API allowed only in development
+  ---
+  duration_ms: 0.210208
+  type: 'test'
+  ...
+# Subtest: native writer controls match server ownership restrictions
+ok 4 - native writer controls match server ownership restrictions
+  ---
+  duration_ms: 0.259382
+  type: 'test'
+  ...
+# Subtest: native editor can review another authors draft
+ok 5 - native editor can review another authors draft
+  ---
+  duration_ms: 0.150593
+  type: 'test'
+  ...
+# Subtest: Lagos scheduling is independent of browser timezone
+ok 6 - Lagos scheduling is independent of browser timezone
+  ---
+  duration_ms: 0.667931
+  type: 'test'
+  ...
+# Subtest: invalid calendar dates cannot silently normalize
+ok 7 - invalid calendar dates cannot silently normalize
+  ---
+  duration_ms: 0.330052
+  type: 'test'
+  ...
+# Subtest: Blog Studio is lazy-loaded and present in navigation
+ok 8 - Blog Studio is lazy-loaded and present in navigation
+  ---
+  duration_ms: 2.051142
+  type: 'test'
+  ...
+# Subtest: RPC grants are server-checked and direct writes are revoked
+ok 9 - RPC grants are server-checked and direct writes are revoked
+  ---
+  duration_ms: 0.595118
+  type: 'test'
+  ...
+# Subtest: access migration does not move blog content into Supabase
+ok 10 - access migration does not move blog content into Supabase
+  ---
+  duration_ms: 0.723353
+  type: 'test'
+  ...
+# Subtest: client sends bearer credentials in headers, never URL or localStorage
+ok 11 - client sends bearer credentials in headers, never URL or localStorage
+  ---
+  duration_ms: 0.698584
+  type: 'test'
+  ...
+# Subtest: native navigation fixture includes the additional Blog Studio section
+ok 12 - native navigation fixture includes the additional Blog Studio section
+  ---
+  duration_ms: 0.172273
+  type: 'test'
+  ...
+1..12
+# tests 12
+# suites 0
+# pass 12
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 119.331767

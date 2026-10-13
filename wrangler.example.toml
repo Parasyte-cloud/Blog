@@ -1,0 +1,21 @@
+# OPTIONAL local Wrangler configuration. Do not copy placeholders into production.
+# For Git-connected Pages use dashboard settings/bindings as DEPLOYMENT.md describes.
+name = "blog-3h5"
+compatibility_date = "2026-10-01"
+pages_build_output_dir = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "YOUR_EXISTING_BLOG_D1_DATABASE_NAME"
+database_id = "YOUR_EXISTING_BLOG_D1_DATABASE_ID"
+migrations_dir = "./migrations"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "YOUR_PRIVATE_BLOG_IMAGES_BUCKET"
+
+[vars]
+SITE_URL = "https://blog.ridearrivo.com"
+WORKSPACE_ORIGIN = "https://intranet.ridearrivo.com"
+# Configure WORKSPACE_SUPABASE_URL and WORKSPACE_SUPABASE_ANON_KEY privately
+# in dashboard settings or .dev.vars. Never use a service-role/secret key.

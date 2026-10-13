@@ -1,0 +1,5 @@
+# Wrangler only. Copy to .dev.vars for local Cloudflare runtime tests.
+WORKSPACE_SUPABASE_URL=https://YOUR-EXISTING-WORKSPACE-PROJECT.supabase.co
+WORKSPACE_SUPABASE_ANON_KEY=YOUR-EXISTING-WORKSPACE-PUBLISHABLE-OR-ANON-KEY
+WORKSPACE_ORIGIN=http://localhost:5173
+SITE_URL=https://blog.ridearrivo.com

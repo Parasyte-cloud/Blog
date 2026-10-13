@@ -1,0 +1,129 @@
+{
+  "mode": "Offline rendering of live local server HTML; CSS, JS and local images embedded for inspection. Browser network navigation blocked by environment.",
+  "results": [
+    {
+      "test": "image-decode",
+      "page": "journal",
+      "width": 1440,
+      "broken": []
+    },
+    {
+      "page": "journal",
+      "width": 1440,
+      "horizontal_overflow": false,
+      "page_errors": []
+    },
+    {
+      "test": "image-decode",
+      "page": "article",
+      "width": 1440,
+      "broken": []
+    },
+    {
+      "page": "article",
+      "width": 1440,
+      "horizontal_overflow": false,
+      "page_errors": []
+    },
+    {
+      "test": "server-search-render",
+      "width": 1440,
+      "correct": true
+    },
+    {
+      "test": "image-decode",
+      "page": "journal",
+      "width": 768,
+      "broken": []
+    },
+    {
+      "page": "journal",
+      "width": 768,
+      "horizontal_overflow": false,
+      "page_errors": []
+    },
+    {
+      "test": "image-decode",
+      "page": "article",
+      "width": 768,
+      "broken": []
+    },
+    {
+      "page": "article",
+      "width": 768,
+      "horizontal_overflow": false,
+      "page_errors": []
+    },
+    {
+      "test": "server-search-render",
+      "width": 768,
+      "correct": true
+    },
+    {
+      "test": "image-decode",
+      "page": "journal",
+      "width": 390,
+      "broken": []
+    },
+    {
+      "page": "journal",
+      "width": 390,
+      "horizontal_overflow": false,
+      "page_errors": []
+    },
+    {
+      "test": "image-decode",
+      "page": "article",
+      "width": 390,
+      "broken": []
+    },
+    {
+      "page": "article",
+      "width": 390,
+      "horizontal_overflow": false,
+      "page_errors": []
+    },
+    {
+      "test": "server-search-render",
+      "width": 390,
+      "correct": true
+    },
+    {
+      "test": "image-decode",
+      "page": "journal",
+      "width": 320,
+      "broken": []
+    },
+    {
+      "page": "journal",
+      "width": 320,
+      "horizontal_overflow": false,
+      "page_errors": []
+    },
+    {
+      "test": "image-decode",
+      "page": "article",
+      "width": 320,
+      "broken": []
+    },
+    {
+      "page": "article",
+      "width": 320,
+      "horizontal_overflow": false,
+      "page_errors": []
+    },
+    {
+      "test": "server-search-render",
+      "width": 320,
+      "correct": true
+    },
+    {
+      "test": "reduced-motion",
+      "animation": "none"
+    },
+    {
+      "test": "keyboard-skip-link",
+      "focused": "Skip to content"
+    }
+  ]
+}

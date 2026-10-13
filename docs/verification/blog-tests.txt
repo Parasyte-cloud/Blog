@@ -1,0 +1,444 @@
+
+> ridearrivo-blog@2.0.0 test
+> node --test tests/*.test.mjs
+
+TAP version 13
+# (node:4621) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: missing credentials rejected
+ok 1 - missing credentials rejected
+  ---
+  duration_ms: 32.769306
+  type: 'test'
+  ...
+# Subtest: valid staff gets only server-derived permissions
+ok 2 - valid staff gets only server-derived permissions
+  ---
+  duration_ms: 3.100003
+  type: 'test'
+  ...
+# Subtest: inactive employee is rejected even with a token
+ok 3 - inactive employee is rejected even with a token
+  ---
+  duration_ms: 1.427705
+  type: 'test'
+  ...
+# Subtest: network failure in identity provider fails closed
+ok 4 - network failure in identity provider fails closed
+  ---
+  duration_ms: 1.848546
+  type: 'test'
+  ...
+# Subtest: missing workspace configuration cannot use Cloudflare identity fallback
+ok 5 - missing workspace configuration cannot use Cloudflare identity fallback
+  ---
+  duration_ms: 1.722603
+  type: 'test'
+  ...
+# Subtest: workspace admin without editorial grant cannot write
+ok 6 - workspace admin without editorial grant cannot write
+  ---
+  duration_ms: 1.945184
+  type: 'test'
+  ...
+# Subtest: foreign origins are rejected, including suffix tricks
+ok 7 - foreign origins are rejected, including suffix tricks
+  ---
+  duration_ms: 1.484585
+  type: 'test'
+  ...
+# Subtest: mutation without an Origin is rejected
+ok 8 - mutation without an Origin is rejected
+  ---
+  duration_ms: 1.142713
+  type: 'test'
+  ...
+# Subtest: valid CORS preflight has exact origin, no cookies
+ok 9 - valid CORS preflight has exact origin, no cookies
+  ---
+  duration_ms: 2.225625
+  type: 'test'
+  ...
+# Subtest: draft create is persistent and server-owned
+ok 10 - draft create is persistent and server-owned
+  ---
+  duration_ms: 8.372412
+  type: 'test'
+  ...
+# Subtest: writer cannot see another writers draft
+ok 11 - writer cannot see another writers draft
+  ---
+  duration_ms: 5.789596
+  type: 'test'
+  ...
+# Subtest: editor can see all drafts
+ok 12 - editor can see all drafts
+  ---
+  duration_ms: 3.481839
+  type: 'test'
+  ...
+# Subtest: writer cannot patch another writers draft
+ok 13 - writer cannot patch another writers draft
+  ---
+  duration_ms: 3.06099
+  type: 'test'
+  ...
+# Subtest: writer cannot publish with a forged role property
+ok 14 - writer cannot publish with a forged role property
+  ---
+  duration_ms: 1.970608
+  type: 'test'
+  ...
+# Subtest: draft and future schedule stay out of public endpoint
+ok 15 - draft and future schedule stay out of public endpoint
+  ---
+  duration_ms: 4.684591
+  type: 'test'
+  ...
+# Subtest: schedule becomes public at its due time
+ok 16 - schedule becomes public at its due time
+  ---
+  duration_ms: 2.997001
+  type: 'test'
+  ...
+# Subtest: duplicate slug returns conflict without creating a second revision
+ok 17 - duplicate slug returns conflict without creating a second revision
+  ---
+  duration_ms: 5.085236
+  type: 'test'
+  ...
+# Subtest: valid update increments version and records revision atomically
+ok 18 - valid update increments version and records revision atomically
+  ---
+  duration_ms: 6.369533
+  type: 'test'
+  ...
+# Subtest: stale update cannot overwrite a newer edit
+ok 19 - stale update cannot overwrite a newer edit
+  ---
+  duration_ms: 3.702105
+  type: 'test'
+  ...
+# Subtest: revocation is checked on the very next request
+ok 20 - revocation is checked on the very next request
+  ---
+  duration_ms: 2.833079
+  type: 'test'
+  ...
+# Subtest: valid image upload and private preview work
+ok 21 - valid image upload and private preview work
+  ---
+  duration_ms: 9.69813
+  type: 'test'
+  ...
+# Subtest: another writer cannot preview a private upload
+ok 22 - another writer cannot preview a private upload
+  ---
+  duration_ms: 2.548546
+  type: 'test'
+  ...
+# Subtest: spoofed SVG image upload is rejected
+ok 23 - spoofed SVG image upload is rejected
+  ---
+  duration_ms: 1.636016
+  type: 'test'
+  ...
+# Subtest: large upload is rejected before storage
+ok 24 - large upload is rejected before storage
+  ---
+  duration_ms: 1.444796
+  type: 'test'
+  ...
+# Subtest: published cover is public and becomes private when archived
+ok 25 - published cover is public and becomes private when archived
+  ---
+  duration_ms: 5.122516
+  type: 'test'
+  ...
+# Subtest: writer cannot attach another writers private upload
+ok 26 - writer cannot attach another writers private upload
+  ---
+  duration_ms: 2.478429
+  type: 'test'
+  ...
+# Subtest: hard deletion requires blog administrator, archive, version and slug confirmation
+ok 27 - hard deletion requires blog administrator, archive, version and slug confirmation
+  ---
+  duration_ms: 3.699396
+  type: 'test'
+  ...
+# Subtest: confirmed archived delete preserves audit history
+ok 28 - confirmed archived delete preserves audit history
+  ---
+  duration_ms: 5.45784
+  type: 'test'
+  ...
+# Subtest: writers cannot read staff access lists
+ok 29 - writers cannot read staff access lists
+  ---
+  duration_ms: 1.619598
+  type: 'test'
+  ...
+# Subtest: malformed JSON produces controlled error
+ok 30 - malformed JSON produces controlled error
+  ---
+  duration_ms: 1.886151
+  type: 'test'
+  ...
+# Subtest: unknown API method/path is not silently served as homepage
+ok 31 - unknown API method/path is not silently served as homepage
+  ---
+  duration_ms: 1.376708
+  type: 'test'
+  ...
+# Subtest: authenticated responses are never cached
+ok 32 - authenticated responses are never cached
+  ---
+  duration_ms: 2.007321
+  type: 'test'
+  ...
+# Subtest: verification script runs from any current working directory
+ok 33 - verification script runs from any current working directory
+  ---
+  duration_ms: 311.446368
+  type: 'test'
+  ...
+# Subtest: build produces assets and routes without publishing source or article imports
+ok 34 - build produces assets and routes without publishing source or article imports
+  ---
+  duration_ms: 48.416983
+  type: 'test'
+  ...
+# Subtest: Pages entrypoint fails closed without its D1 binding
+ok 35 - Pages entrypoint fails closed without its D1 binding
+  ---
+  duration_ms: 19.582532
+  type: 'test'
+  ...
+# Subtest: writer can draft but not publish, archive, delete or manage grants
+ok 36 - writer can draft but not publish, archive, delete or manage grants
+  ---
+  duration_ms: 1.342726
+  type: 'test'
+  ...
+# Subtest: editor can publish/archive but cannot hard delete
+ok 37 - editor can publish/archive but cannot hard delete
+  ---
+  duration_ms: 0.239147
+  type: 'test'
+  ...
+# Subtest: blog administrator can manage editorial access
+ok 38 - blog administrator can manage editorial access
+  ---
+  duration_ms: 0.202051
+  type: 'test'
+  ...
+# Subtest: workspace administrator without a blog grant only manages access
+ok 39 - workspace administrator without a blog grant only manages access
+  ---
+  duration_ms: 0.275853
+  type: 'test'
+  ...
+# Subtest: unknown role fails closed
+ok 40 - unknown role fails closed
+  ---
+  duration_ms: 0.27413
+  type: 'test'
+  ...
+# Subtest: draft validation preserves author identity outside input
+ok 41 - draft validation preserves author identity outside input
+  ---
+  duration_ms: 0.542642
+  type: 'test'
+  ...
+# Subtest: empty draft body is allowed
+ok 42 - empty draft body is allowed
+  ---
+  duration_ms: 0.320411
+  type: 'test'
+  ...
+# Subtest: writer may edit only own unpublished draft
+ok 43 - writer may edit only own unpublished draft
+  ---
+  duration_ms: 0.182847
+  type: 'test'
+  ...
+# Subtest: writer cannot change an archived or formerly published article
+ok 44 - writer cannot change an archived or formerly published article
+  ---
+  duration_ms: 0.361449
+  type: 'test'
+  ...
+# Subtest: writer cannot bypass publish prohibition in API input
+ok 45 - writer cannot bypass publish prohibition in API input
+  ---
+  duration_ms: 0.971376
+  type: 'test'
+  ...
+# Subtest: publication needs an accuracy confirmation
+ok 46 - publication needs an accuracy confirmation
+  ---
+  duration_ms: 0.724554
+  type: 'test'
+  ...
+# Subtest: publication needs complete content
+ok 47 - publication needs complete content
+  ---
+  duration_ms: 0.228627
+  type: 'test'
+  ...
+# Subtest: valid publication defaults to server time
+ok 48 - valid publication defaults to server time
+  ---
+  duration_ms: 0.836257
+  type: 'test'
+  ...
+# Subtest: future schedule requires a future timezone-aware timestamp
+ok 49 - future schedule requires a future timezone-aware timestamp
+  ---
+  duration_ms: 0.415373
+  type: 'test'
+  ...
+# Subtest: schedule normalizes the timezone
+ok 50 - schedule normalizes the timezone
+  ---
+  duration_ms: 0.140513
+  type: 'test'
+  ...
+# Subtest: a published slug cannot change
+ok 51 - a published slug cannot change
+  ---
+  duration_ms: 0.167977
+  type: 'test'
+  ...
+# Subtest: invalid slug and excessive body rejected
+ok 52 - invalid slug and excessive body rejected
+  ---
+  duration_ms: 1.646527
+  type: 'test'
+  ...
+# Subtest: cover requires descriptive alt text before publication
+ok 53 - cover requires descriptive alt text before publication
+  ---
+  duration_ms: 0.273774
+  type: 'test'
+  ...
+# Subtest: drafts and future scheduled posts are not public
+ok 54 - drafts and future scheduled posts are not public
+  ---
+  duration_ms: 0.190376
+  type: 'test'
+  ...
+# Subtest: due scheduled posts become public without a cron
+ok 55 - due scheduled posts become public without a cron
+  ---
+  duration_ms: 0.087966
+  type: 'test'
+  ...
+# Subtest: invalid dates and archived entries fail closed
+ok 56 - invalid dates and archived entries fail closed
+  ---
+  duration_ms: 0.168152
+  type: 'test'
+  ...
+# Subtest: CORS matches exact trusted origin, not suffixes
+ok 57 - CORS matches exact trusted origin, not suffixes
+  ---
+  duration_ms: 0.109569
+  type: 'test'
+  ...
+# Subtest: UUID parser rejects routes and malformed IDs
+ok 58 - UUID parser rejects routes and malformed IDs
+  ---
+  duration_ms: 0.150703
+  type: 'test'
+  ...
+# Subtest: uploaded PNG is detected from bytes, not supplied extension
+ok 59 - uploaded PNG is detected from bytes, not supplied extension
+  ---
+  duration_ms: 0.327763
+  type: 'test'
+  ...
+# Subtest: SVG and MIME spoofing are rejected
+ok 60 - SVG and MIME spoofing are rejected
+  ---
+  duration_ms: 0.322016
+  type: 'test'
+  ...
+# (node:4672) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+# (Use `node --trace-warnings ...` to show where the warning was created)
+# Subtest: Markdown renders semantic headings and safe inline formatting
+ok 61 - Markdown renders semantic headings and safe inline formatting
+  ---
+  duration_ms: 2.583565
+  type: 'test'
+  ...
+# Subtest: raw HTML is escaped rather than executed
+ok 62 - raw HTML is escaped rather than executed
+  ---
+  duration_ms: 0.441277
+  type: 'test'
+  ...
+# Subtest: javascript and protocol-relative Markdown links are not clickable
+ok 63 - javascript and protocol-relative Markdown links are not clickable
+  ---
+  duration_ms: 0.571107
+  type: 'test'
+  ...
+# Subtest: code fences keep markup literal
+ok 64 - code fences keep markup literal
+  ---
+  duration_ms: 0.233544
+  type: 'test'
+  ...
+# Subtest: empty journal provides an honest useful landing page
+ok 65 - empty journal provides an honest useful landing page
+  ---
+  duration_ms: 40.096779
+  type: 'test'
+  ...
+# Subtest: public article is server rendered with canonical and LinkedIn metadata
+ok 66 - public article is server rendered with canonical and LinkedIn metadata
+  ---
+  duration_ms: 24.102061
+  type: 'test'
+  ...
+# Subtest: draft permalink is a real 404, not a SPA fallback
+ok 67 - draft permalink is a real 404, not a SPA fallback
+  ---
+  duration_ms: 3.336983
+  type: 'test'
+  ...
+# Subtest: RSS and sitemap contain public posts only
+ok 68 - RSS and sitemap contain public posts only
+  ---
+  duration_ms: 6.620494
+  type: 'test'
+  ...
+# Subtest: search input is escaped in HTML attributes
+ok 69 - search input is escaped in HTML attributes
+  ---
+  duration_ms: 3.517751
+  type: 'test'
+  ...
+# Subtest: admin entry points go to native workspace without passing tokens in URL
+ok 70 - admin entry points go to native workspace without passing tokens in URL
+  ---
+  duration_ms: 3.121124
+  type: 'test'
+  ...
+# Subtest: default cover varies with category without exposing a private upload
+ok 71 - default cover varies with category without exposing a private upload
+  ---
+  duration_ms: 3.668092
+  type: 'test'
+  ...
+1..71
+# tests 71
+# suites 0
+# pass 71
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 440.346648
