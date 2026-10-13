@@ -1,6 +1,6 @@
-import { HttpError, CATEGORIES, MAX_IMAGE_BYTES, isUuid, sniffImage, validateOrigin } from './policy.mjs';
+import { HttpError, CATEGORIES, MAX_IMAGE_BYTES, MAX_ASSET_BYTES, isUuid, sniffImage, validateOrigin, validateAssetUpload, sanitizeFilename } from './policy.mjs';
 import { authorize, workspaceRpc } from './auth.mjs';
-import { dbFor, listingOptions, publicFeed, publicPost, publicView, listEditorial, ownedPost, editorView, savePost, removePost, VISIBLE_SQL } from './content.mjs';
+import { dbFor, listingOptions, publicFeed, publicPost, publicView, listEditorial, ownedPost, editorView, savePost, removePost, VISIBLE_SQL, assetView, listAssets, getAsset, createAssetRecord, linkAsset, unlinkAsset, createImportedDraft, listPostAssets } from './content.mjs';
 const json=(body,status=200)=>Response.json(body,{status});
 export async function readBytes(request,max) {
   const length=request.headers.get('Content-Length');
@@ -23,6 +23,15 @@ async function mediaResponse(env,row) {
   const obj=await env.MEDIA.get(row.object_key);if(!obj)throw new HttpError(404,'Image not found.');
   return new Response(obj.body,{headers:{'Content-Type':row.mime,'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Content-Disposition':'inline'}});
 }
+
+async function assetResponse(env,row,{publicAttachment=false}={}) {
+  if(!env.MEDIA)throw new HttpError(503,'File storage is not configured.');
+  const obj=await env.MEDIA.get(row.object_key);if(!obj)throw new HttpError(404,'Asset not found.');
+  const disposition=publicAttachment||row.asset_kind!=='image'?'attachment':'inline';
+  const safe=row.original_filename.replace(/["\r\n]/g,'_');
+  return new Response(obj.body,{headers:{'Content-Type':row.mime_type,'Cache-Control':publicAttachment?'public, max-age=300':'private, no-store','X-Content-Type-Options':'nosniff','Content-Disposition':`${disposition}; filename="${safe}"`}});
+}
+
 async function studio(request,env,services,url) {
   const {identity,permissions}=await authorize(request,env,services.fetch);
   const path=url.pathname.replace(/\/$/,'');const method=request.method;
@@ -40,6 +49,13 @@ async function studio(request,env,services,url) {
   }
   requirePermission(permissions.write);
   const db=dbFor(env),now=services.now();
+  if(path==='/api/studio/import'){
+    if(method!=='POST')throw new HttpError(405,'Method not allowed.');
+    const input=await readJson(request);
+    if(!isUuid(input.asset_id))throw new HttpError(400,'Select a valid source asset.');
+    const result=await createImportedDraft(db,input.asset_id,input.draft,identity,now);
+    return json(result,201);
+  }
   if(path==='/api/studio/posts') {
     if(method==='GET')return json(await listEditorial(db,listingOptions(url),identity));
     if(method==='POST')return json({post:await savePost(db,await readJson(request),null,identity,now)},201);
@@ -57,6 +73,36 @@ async function studio(request,env,services,url) {
     if(method==='GET')return json({post:editorView(post,identity)});
     if(method==='PATCH')return json({post:await savePost(db,await readJson(request),post,identity,now)});
     if(method==='DELETE'){await removePost(db,post,await readJson(request),identity,now);return json({ok:true});}
+    throw new HttpError(405,'Method not allowed.');
+  }
+  if(path==='/api/studio/assets'){
+    if(method==='GET')return json(await listAssets(db,identity,listingOptions(url).page));
+    if(method==='POST'){
+      if(!env.MEDIA)throw new HttpError(503,'File storage is not configured.');
+      const kind=(request.headers.get('X-Asset-Kind')||'').trim().toLowerCase();
+      const max=kind==='image'?MAX_IMAGE_BYTES:MAX_ASSET_BYTES;
+      const bytes=await readBytes(request,max);
+      let rawName;try{rawName=decodeURIComponent(request.headers.get('X-File-Name')||'');}catch{throw new HttpError(400,'Invalid filename.');}
+      const filename=sanitizeFilename(rawName);
+      const type=(request.headers.get('Content-Type')||'').split(';')[0].trim();
+      const validated=validateAssetUpload(bytes,type,filename,kind);
+      const id=crypto.randomUUID();const prefix=kind==='image'?'images':kind==='source'?'sources':'attachments';
+      const object_key=`${prefix}/${id}.${validated.extension}`;const created_at=now.toISOString();
+      await env.MEDIA.put(object_key,bytes,{httpMetadata:{contentType:validated.mime_type}});
+      try{
+        const asset=await createAssetRecord(db,{id,object_key,original_filename:validated.filename,mime_type:validated.mime_type,byte_size:bytes.byteLength,asset_kind:kind,uploaded_by:identity.employee_id,alt_text:'',sha256:null,created_at});
+        return json({asset},201);
+      }catch(error){try{await env.MEDIA.delete(object_key);}catch{console.error('Blog asset cleanup needs attention.');}throw error;}
+    }
+    throw new HttpError(405,'Method not allowed.');
+  }
+  const assetMatch=/^\/api\/studio\/assets\/([^/]+)$/.exec(path);
+  if(assetMatch&&method==='GET')return assetResponse(env,await getAsset(db,assetMatch[1],identity));
+  const relationMatch=/^\/api\/studio\/posts\/([^/]+)\/assets(?:\/([^/]+))?$/.exec(path);
+  if(relationMatch){
+    if(method==='GET'&&!relationMatch[2])return json({assets:await listPostAssets(db,relationMatch[1],identity)});
+    if(method==='POST'&&!relationMatch[2]){const input=await readJson(request);return json({link:await linkAsset(db,relationMatch[1],input.asset_id,input.relationship,identity,now)},201);}
+    if(method==='DELETE'&&relationMatch[2]){await unlinkAsset(db,relationMatch[1],relationMatch[2],url.searchParams.get('relationship')||'',identity);return json({ok:true});}
     throw new HttpError(405,'Method not allowed.');
   }
   if(path==='/api/studio/media'){
@@ -89,7 +135,11 @@ async function studio(request,env,services,url) {
   }
   if(path==='/api/studio/audit'&&method==='GET'){
     const own=identity.role==='writer';
-    const result=await db.prepare(`SELECT id,post_id,version,event,actor_id,title,created_at FROM ra_blog_revisions ${own?'WHERE author_id=?':''} ORDER BY created_at DESC,id DESC LIMIT 50`).bind(...(own?[identity.employee_id]:[])).all();
+    const result=await db.prepare(`SELECT id,post_id,version,event,actor_id,title,created_at FROM ra_blog_revisions ${own?'WHERE author_id=?':''}
+      UNION ALL
+      SELECT e.id,e.post_id,0 AS version,e.event,e.actor_id,COALESCE(p.title,a.original_filename) AS title,e.created_at
+      FROM ra_blog_asset_events e LEFT JOIN ra_blog_posts p ON p.id=e.post_id LEFT JOIN ra_blog_assets a ON a.id=e.asset_id ${own?'WHERE e.actor_id=?':''}
+      ORDER BY created_at DESC,id DESC LIMIT 50`).bind(...(own?[identity.employee_id,identity.employee_id]:[])).all();
     return json({events:result.results});
   }
   throw new HttpError(404,'API route not found.');
@@ -116,11 +166,15 @@ export async function handleRequest(request,env,services={}) {
       if(request.method==='OPTIONS'){
         if(!['GET','POST','PATCH','DELETE'].includes(request.headers.get('Access-Control-Request-Method')||'GET'))throw new HttpError(405,'Method not allowed.');
         const requested=(request.headers.get('Access-Control-Request-Headers')||'').toLowerCase().split(',').map(v=>v.trim()).filter(Boolean);
-        if(requested.some(v=>!['authorization','content-type','x-file-name'].includes(v)))throw new HttpError(403,'Requested headers are not allowed.');
-        response=new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET, POST, PATCH, DELETE, OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type, X-File-Name','Access-Control-Max-Age':'600'}});
+        if(requested.some(v=>!['authorization','content-type','x-file-name','x-asset-kind'].includes(v)))throw new HttpError(403,'Requested headers are not allowed.');
+        response=new Response(null,{status:204,headers:{'Access-Control-Allow-Methods':'GET, POST, PATCH, DELETE, OPTIONS','Access-Control-Allow-Headers':'Authorization, Content-Type, X-File-Name, X-Asset-Kind','Access-Control-Max-Age':'600'}});
       }else response=await studio(request,env,services,url);
     }else if(url.pathname==='/api/articles'&&request.method==='GET'){
       response=json(await publicFeed(dbFor(env),listingOptions(url),services.now()));
+    }else if(/^\/attachments\/[a-f0-9-]+$/.test(url.pathname)&&['GET','HEAD'].includes(request.method)){
+      const id=url.pathname.slice('/attachments/'.length);if(!isUuid(id))throw new HttpError(404,'Attachment not found.');
+      const row=await dbFor(env).prepare(`SELECT a.* FROM ra_blog_assets a JOIN ra_blog_post_assets pa ON pa.asset_id=a.id JOIN ra_blog_posts p ON p.id=pa.post_id WHERE a.id=? AND pa.relationship='attachment' AND ${VISIBLE_SQL} LIMIT 1`).bind(id,services.now().toISOString()).first();
+      if(!row)throw new HttpError(404,'Attachment not found.');response=await assetResponse(env,row,{publicAttachment:true});
     }else if(url.pathname==='/api/health'&&request.method==='GET'){
       await dbFor(env).prepare('SELECT 1 AS ok').first();response=json({ok:true,storage:'d1',media_connected:Boolean(env.MEDIA)});
     }else if(/^\/media\/[a-f0-9-]+$/.test(url.pathname)&&['GET','HEAD'].includes(request.method)){

@@ -62,3 +62,38 @@ Review was performed by the author; no independent reviewer/subagent was availab
 - Large-scale sitemap pagination/full-text search (current sitemap limit 5,000; RSS latest 50).
 
 These are not hidden production claims. See docs/ACCEPTANCE.md for mandatory real-environment checks, especially actual Supabase RPC execution, individual grant/revoke, Cloudflare D1/R2 behavior and signed-out LinkedIn previews.
+
+## Content import and quick-writeup rollout - 13 October 2026
+
+### Local verification completed
+
+- Blog full suite: **89/89 tests pass** after adding quick writeups, generic R2 assets, source/attachment relationships, metadata-only asset audit events, draft import API, public attachment authorization/download links, and quick-post image rendering.
+- Blog production build: `npm run build` passes.
+- RA-Workspace focused Blog Studio contract: **23/23 tests pass**, covering the four Add Content actions, quick-writeup permissions, import/source preservation, generic assets, persistent post-asset links, MIME inference, mobile bottom-sheet hooks, 44px interaction targets, and cancelled file selection.
+- The reconstructed RA-Workspace snapshot still cannot complete its repository-wide suite/build in this offline runtime: 43/55 suites load successfully and `npm run build` stops at the pre-existing missing `sharp` dependency before TypeScript/Vite. Run the complete workspace verification in the dependency-complete checkout before deployment.
+- New RA parser dependencies are pinned in `package.json` as `mammoth@1.9.1`, `turndown@7.2.0`, and `pdfjs-dist@5.4.296`. This offline runtime could not reach npm, so `package-lock.json` was not regenerated. In the real checkout run `npm install mammoth@1.9.1 turndown@7.2.0 pdfjs-dist@5.4.296`, review the lockfile diff, then run the full test/build commands.
+
+### Mandatory production order
+
+1. Back up/confirm the current D1 schema, then apply `migrations/0002_content_assets.sql` to the `ridearrivo-blog` D1 database.
+2. Deploy the Blog project first so the new D1/R2 API routes are available.
+3. Verify `GET /api/health` and authenticated `GET /api/studio/me` before deploying RA-Workspace.
+4. In the real RA-Workspace checkout, install the three pinned parser dependencies so `package-lock.json` is updated, then run `npm test` and `npm run build` successfully.
+5. Confirm the RA production build has `VITE_BLOG_API_ORIGIN=https://blog.ridearrivo.com`, then deploy RA-Workspace.
+6. Run the production acceptance matrix below. Only after it passes should the temporary `Blog Studio workspace RPC fetch failed` diagnostic logging be removed from `src/server/auth.mjs`.
+
+### Production acceptance matrix
+
+- Writer creates and reopens a quick writeup draft; Writer cannot publish it.
+- Editor publishes the quick writeup; its compact public card and permanent URL render, including an optional image when supplied.
+- Writer imports one DOCX and one PDF; each original source remains private in R2 and linked to the draft even if extraction needs review.
+- Markdown, TXT and Blog JSON import into drafts without trusting source lifecycle/status fields.
+- Editor reviews/fact-checks and publishes an imported article.
+- A published attachment downloads with safe MIME, `nosniff`, and attachment disposition; a source asset remains inaccessible publicly.
+- Revoking Blog access takes effect on the next protected request.
+- Add Content remains usable at 320, 360, 375, 390 and 430 CSS pixels with no horizontal overflow; primary actions remain at least 44px high.
+- Use the prepared Uber article as the first production import only after its facts, sources, image rights and alt text are reviewed by an Editor/Blog Administrator.
+
+### Diagnostic cleanup gate
+
+Do **not** remove the temporary identity-fetch diagnostic yet. It was instrumental in identifying the Cloudflare edge `redirect: 'error'` incompatibility and should remain until the new production import/publishing flow passes end-to-end. After the acceptance matrix is green, remove only that temporary `console.error` diagnostic block, retain the controlled 503 response, and re-run `npm test && npm run build` before committing the cleanup.

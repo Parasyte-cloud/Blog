@@ -30,12 +30,16 @@ export function validatePost(input, current, identity, now = new Date()) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) throw new HttpError(400, 'Article must be an object.');
   const perms = permissionsFor(identity);
   if (!perms.write || (current && !mayEdit(identity, current))) throw new HttpError(403, 'You do not have permission to edit this article.');
+  const content_type = input.content_type ?? current?.content_type ?? 'article';
+  if (!['article','quick_post'].includes(content_type)) throw new HttpError(400, 'Invalid content type.');
+  if (current?.content_type && current.content_type !== content_type) throw new HttpError(400, 'Content type cannot be changed after creation.');
+  const quick = content_type === 'quick_post';
   const title = text(input.title, 'Title', 160, true);
   const slug = text(input.slug, 'Slug', 120, true);
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length < 3) throw new HttpError(400, 'Use a slug with at least 3 lowercase letters/numbers and hyphens only.');
   if (current?.ever_published && current.slug !== slug) throw new HttpError(400, 'The slug is locked after first publication to preserve shared links.');
   const excerpt = text(input.excerpt ?? '', 'Excerpt', 320);
-  const body = text(input.body ?? '', 'Body', 100000);
+  const body = text(input.body ?? '', 'Body', 100000, quick);
   const category = input.category;
   if (!CATEGORIES.includes(category)) throw new HttpError(400, 'Select a valid category.');
   const status = input.status ?? 'draft';
@@ -50,7 +54,8 @@ export function validatePost(input, current, identity, now = new Date()) {
   let published_at = null;
   if (['published', 'scheduled'].includes(status)) {
     if (!fact_checked) throw new HttpError(400, 'Confirm that you have reviewed this article for accuracy before publishing.');
-    if (body.length < 80 || excerpt.length < 30) throw new HttpError(400, 'Publication needs a body of at least 80 characters and an excerpt of at least 30 characters.');
+    if (!quick && (body.length < 80 || excerpt.length < 30)) throw new HttpError(400, 'Publication needs a body of at least 80 characters and an excerpt of at least 30 characters.');
+    if (quick && !body) throw new HttpError(400, 'A quick writeup needs some text before publishing.');
     if (cover_media_id && !cover_alt) throw new HttpError(400, 'Add descriptive alt text for the cover image.');
     const dateValue = input.published_at || (status === 'published' ? (current?.published_at || now.toISOString()) : '');
     if (typeof dateValue !== 'string' || !/(Z|[+-]\d{2}:\d{2})$/.test(dateValue) || !Number.isFinite(Date.parse(dateValue))) throw new HttpError(400, 'Provide a valid date and time with a timezone.');
@@ -60,7 +65,7 @@ export function validatePost(input, current, identity, now = new Date()) {
   } else if (current?.ever_published) {
     published_at = current.published_at;
   }
-  return { title, slug, excerpt, body, category, status, cover_media_id, cover_alt, editorial_note, fact_checked: Number(fact_checked), published_at };
+  return { content_type, title, slug, excerpt, body, category, status, cover_media_id, cover_alt, editorial_note, fact_checked: Number(fact_checked), published_at };
 }
 export function sniffImage(bytes, claimedType) {
   if (!(bytes instanceof Uint8Array) || bytes.byteLength < 32 || bytes.byteLength > MAX_IMAGE_BYTES) throw new HttpError(400, 'Upload a valid image no larger than 5 MiB.');
@@ -76,4 +81,45 @@ export function sniffImage(bytes, claimedType) {
   else throw new HttpError(400, 'Unsupported image format. Use JPEG, PNG or WebP, not SVG.');
   if (claimedType !== mime) throw new HttpError(400, 'Image format does not match its MIME type.');
   return { mime, extension };
+}
+
+export const MAX_ASSET_BYTES = 15 * 1024 * 1024;
+const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+const DOC_EXTENSIONS = new Map([
+  ['pdf','application/pdf'],
+  ['docx',DOCX_MIME],
+  ['md','text/markdown'],
+  ['txt','text/plain'],
+  ['json','application/json'],
+]);
+export function sanitizeFilename(value) {
+  const name=String(value||'').split(/[\\/]/).pop().replace(/[\x00-\x1f\x7f]/g,'').trim().slice(0,160);
+  if(!name || name.startsWith('.')) throw new HttpError(400,'Invalid filename.');
+  return name;
+}
+export function validateAssetUpload(bytes, claimedType, filename, kind) {
+  if (!(bytes instanceof Uint8Array) || !bytes.byteLength) throw new HttpError(400,'Upload a non-empty file.');
+  if (!['image','source','attachment'].includes(kind)) throw new HttpError(400,'Select a valid asset kind.');
+  const safeName=sanitizeFilename(filename);
+  const ext=(safeName.match(/\.([a-z0-9]+)$/i)?.[1]||'').toLowerCase();
+  const type=String(claimedType||'').split(';')[0].trim().toLowerCase();
+  if (type.startsWith('image/')) {
+    if (kind!=='image') throw new HttpError(400,'Images must be uploaded as image assets.');
+    const detected=sniffImage(bytes,type);
+    const allowedExt=detected.extension==='jpg'?['jpg','jpeg']:[detected.extension];
+    if(!allowedExt.includes(ext)) throw new HttpError(400,'Image filename extension does not match its content.');
+    return {mime_type:detected.mime,extension:detected.extension,filename:safeName};
+  }
+  if(bytes.byteLength>MAX_ASSET_BYTES) throw new HttpError(413,'Documents must be 15 MiB or smaller.');
+  if(kind==='image') throw new HttpError(400,'Image assets must use JPEG, PNG or WebP.');
+  const expected=DOC_EXTENSIONS.get(ext);
+  if(!expected || expected!==type) throw new HttpError(400,'File extension does not match an allowed MIME type.');
+  if(ext==='pdf' && !(bytes[0]===0x25&&bytes[1]===0x50&&bytes[2]===0x44&&bytes[3]===0x46&&bytes[4]===0x2d)) throw new HttpError(400,'PDF signature does not match its filename.');
+  if(ext==='docx' && !(bytes[0]===0x50&&bytes[1]===0x4b&&bytes[2]===0x03&&bytes[3]===0x04)) throw new HttpError(400,'DOCX signature does not match its filename.');
+  if(['md','txt','json'].includes(ext)) {
+    let decoded;try{decoded=new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch{throw new HttpError(400,'Text files must be valid UTF-8.');}
+    if(decoded.includes('\0')) throw new HttpError(400,'Text file contains an invalid character.');
+    if(ext==='json'){try{JSON.parse(decoded);}catch{throw new HttpError(400,'JSON file is not valid JSON.');}}
+  }
+  return {mime_type:type,extension:ext,filename:safeName};
 }
