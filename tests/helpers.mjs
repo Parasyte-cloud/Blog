@@ -1,7 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 export class LocalD1 {
-  constructor() { this.sql = new DatabaseSync(':memory:'); for (const name of ['0001_blog_studio.sql','0002_content_assets.sql']) this.sql.exec(readFileSync(new URL('../migrations/'+name,import.meta.url),'utf8')); }
+  constructor() { this.sql = new DatabaseSync(':memory:'); for (const name of ['0001_blog_studio.sql','0002_content_assets.sql','0003_asset_publication.sql']) this.sql.exec(readFileSync(new URL('../migrations/'+name,import.meta.url),'utf8')); }
   withSession() { return this; }
   prepare(sql) {
     const db=this.sql;
