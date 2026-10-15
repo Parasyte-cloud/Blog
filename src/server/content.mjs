@@ -118,8 +118,8 @@ export async function removePost(db,post,input,identity,now) {
 
 export function assetView(row) {
   if(!row)return null;
-  const {id,object_key,original_filename,mime_type,byte_size,asset_kind,uploaded_by,alt_text,sha256,created_at}=row;
-  return {id,object_key,original_filename,mime_type,byte_size,asset_kind,uploaded_by,alt_text,sha256,created_at};
+  const {id,object_key,original_filename,mime_type,byte_size,asset_kind,uploaded_by,alt_text,sha256,created_at,public_at,public_by}=row;
+  return {id,object_key,original_filename,mime_type,byte_size,asset_kind,uploaded_by,alt_text,sha256,created_at,published_at:public_at||null,published_by:public_by||null};
 }
 export async function listAssets(db,identity,page=1) {
   const own=identity.role==='writer';
@@ -133,6 +133,69 @@ export async function getAsset(db,id,identity,{publicLookup=false}={}) {
   if(!publicLookup && identity?.role==='writer' && row.uploaded_by!==identity.employee_id) throw new HttpError(404,'Asset not found.');
   return row;
 }
+
+export async function setAssetPublication(db,id,published,identity,now) {
+  if(!isUuid(id)) throw new HttpError(404,'Asset not found.');
+  if(typeof published!=='boolean') throw new HttpError(400,'Published must be true or false.');
+
+  const row=await db.prepare(
+    'SELECT * FROM ra_blog_assets WHERE id=?'
+  ).bind(id).first();
+
+  if(!row) throw new HttpError(404,'Asset not found.');
+
+  if(row.asset_kind==='source'){
+    throw new HttpError(
+      400,
+      'Private source files cannot be published directly.'
+    );
+  }
+
+  const published_at=published ? now.toISOString() : null;
+  const published_by=published ? identity.employee_id : null;
+
+  await db.prepare(
+    'UPDATE ra_blog_assets SET public_at=?, public_by=? WHERE id=?'
+  ).bind(published_at,published_by,id).run();
+
+  return assetView(
+    await db.prepare(
+      'SELECT * FROM ra_blog_assets WHERE id=?'
+    ).bind(id).first()
+  );
+}
+
+export async function deleteAssetRecord(db,id) {
+  if(!isUuid(id)) throw new HttpError(404,'Asset not found.');
+
+  const row=await db.prepare(
+    'SELECT * FROM ra_blog_assets WHERE id=?'
+  ).bind(id).first();
+
+  if(!row) throw new HttpError(404,'Asset not found.');
+
+  const linked=await db.prepare(
+    'SELECT COUNT(*) AS n FROM ra_blog_post_assets WHERE asset_id=?'
+  ).bind(id).first();
+
+  if(Number(linked?.n||0)>0){
+    throw new HttpError(
+      409,
+      'This file is attached to content. Detach it before permanent deletion.'
+    );
+  }
+
+  const result=await db.prepare(
+    'DELETE FROM ra_blog_assets WHERE id=?'
+  ).bind(id).run();
+
+  if(result.meta.changes!==1){
+    throw new HttpError(409,'The asset changed. Refresh and try again.');
+  }
+
+  return row;
+}
+
 export async function createAssetRecord(db,asset) {
   const insert=db.prepare('INSERT INTO ra_blog_assets (id,object_key,original_filename,mime_type,byte_size,asset_kind,uploaded_by,alt_text,sha256,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)').bind(asset.id,asset.object_key,asset.original_filename,asset.mime_type,asset.byte_size,asset.asset_kind,asset.uploaded_by,asset.alt_text||'',asset.sha256||null,asset.created_at);
   const audit=db.prepare('INSERT INTO ra_blog_asset_events (id,event,actor_id,asset_id,post_id,relationship,created_at) VALUES (?,?,?,?,?,?,?)').bind(crypto.randomUUID(),'uploaded',asset.uploaded_by,asset.id,null,null,asset.created_at);
