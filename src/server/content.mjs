@@ -9,12 +9,20 @@ export function editorView(row, identity) { return { ...row, fact_checked: Boole
 export function slugify(value) { return String(value || '').normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').replace(/-+/g,'-'); }
 export function preparePostInput(input, current, identity, now, id) {
   const requested = input?.content_type ?? current?.content_type ?? 'article';
-  if (requested !== 'quick_post') return { ...input, content_type: requested };
+  const suffix = String(current?.id || id || '').replace(/[^0-9a-f]/gi,'').slice(0,6).toLowerCase() || 'update';
+  if (requested !== 'quick_post') {
+    const rawSlug = typeof input?.slug === 'string' ? input.slug.trim() : '';
+    if (requested === 'article' && !rawSlug && !current?.ever_published) {
+      const title = typeof input?.title === 'string' ? input.title.trim() : '';
+      const base = slugify(title).slice(0,105).replace(/-+$/,'') || 'draft';
+      return { ...input, content_type: 'article', slug: `${base}-${suffix}` };
+    }
+    return { ...input, content_type: requested };
+  }
   if (current?.content_type && current.content_type !== 'quick_post') throw new HttpError(400,'Content type cannot be changed after creation.');
   const body = typeof input?.body === 'string' ? input.body : '';
   const opening = body.replace(/\s+/g,' ').trim().slice(0,80) || 'RideArrivo update';
   const title = typeof input?.title === 'string' && input.title.trim() ? input.title.trim() : opening;
-  const suffix = String(current?.id || id || '').replace(/[^0-9a-f]/gi,'').slice(0,6).toLowerCase() || 'update';
   const base = (slugify(title).slice(0,105).replace(/-+$/,'') || 'ridearrivo-update');
   return {
     ...input,
