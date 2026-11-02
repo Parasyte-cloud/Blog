@@ -247,7 +247,7 @@ export async function handleRequest(request,env,services={}) {
     }else if(url.pathname.startsWith('/api/'))throw new HttpError(404,'API route not found.');
     else if(url.pathname==='/admin'||url.pathname==='/admin/'){
       const destination=new URL(env.WORKSPACE_ORIGIN||'https://intranet.ridearrivo.com');destination.searchParams.set('section','blog');response=Response.redirect(destination,302);
-    }else if(['/journal.css','/journal.js','/favicon.png','/robots.txt'].includes(url.pathname)||url.pathname.startsWith('/assets/')){
+    }else if(['/journal.css','/journal.js','/theme.js','/favicon.png','/robots.txt'].includes(url.pathname)||url.pathname.startsWith('/assets/')){
       response=env.ASSETS?await env.ASSETS.fetch(request):new Response('Not found',{status:404});
     }else{
       // Public renderer is loaded separately so the editor API has no UI dependencies.

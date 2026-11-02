@@ -2,6 +2,27 @@
   'use strict';
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   let noticeTimer;
+  // Theme toggle. Writes the same cookies as the main site so the choice follows the visitor across ridearrivo.com.
+  const root = document.documentElement;
+  const systemDark = window.matchMedia('(prefers-color-scheme: dark)');
+  const writeCookie = (name, value) => {
+    const shared = /(^|\.)ridearrivo\.com$/.test(location.hostname) ? '; Domain=.ridearrivo.com' : '';
+    const secure = location.protocol === 'https:' ? '; Secure' : '';
+    try { document.cookie = `${name}=${value}; Path=/; Max-Age=31536000; SameSite=Lax${shared}${secure}`; } catch {}
+  };
+  const paintTheme = () => {
+    const mode = root.getAttribute('data-theme-mode') || 'light';
+    const theme = mode === 'system' ? (systemDark.matches ? 'dark' : 'light') : mode;
+    root.setAttribute('data-theme', theme);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#091521' : '#fbfaf7');
+    document.querySelectorAll('.theme-toggle').forEach(b => { const next = theme === 'dark' ? 'light' : 'dark'; b.setAttribute('aria-label', `Switch to ${next} mode`); b.setAttribute('title', `Switch to ${next} mode`); b.setAttribute('aria-pressed', String(theme === 'dark')); });
+  };
+  document.querySelectorAll('.theme-toggle').forEach(button => button.addEventListener('click', () => {
+    const now = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light', next = now === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme-mode', next); writeCookie('arrivo_theme_mode', next); writeCookie('arrivo_theme', next); paintTheme();
+  }));
+  systemDark.addEventListener?.('change', () => { if (root.getAttribute('data-theme-mode') === 'system') paintTheme(); });
+  paintTheme();
   const announce = text => { const el=document.getElementById('notice'); if(!el)return;el.textContent=text;el.classList.add('visible');clearTimeout(noticeTimer);noticeTimer=setTimeout(()=>el.classList.remove('visible'),4200); };
   document.querySelectorAll('[data-copy]').forEach(button => button.addEventListener('click',async()=>{
     try { await navigator.clipboard.writeText(button.dataset.copy); announce('Article link copied.'); }

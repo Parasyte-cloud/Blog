@@ -67,3 +67,11 @@ This version does not include external-user invitations, document uploads, comme
 The public sitemap currently includes up to 5,000 articles and RSS the latest 50. Add sitemap pagination before exceeding that scale. Draft upload storage can accumulate; plan a separately reviewed cleanup policy rather than deleting objects implicitly.
 
 See `docs/VERIFICATION.md` for what was tested locally and what still requires real deployment verification.
+
+## Two-sided journal (riders and drivers)
+
+- `/` is the rider side: services band at the top (click-to-open cards), trending story, reading room, waiting-room block.
+- `/drivers` is the driver side: how joining works, what to prepare, driver orientation, FAQ and driver stories (category `For drivers`).
+- Offerings, driver steps, orientation and FAQ live in `src/server/offerings.mjs`. Edit that file when a product changes status; nothing else needs touching.
+- Theme: light by default. `public/theme.js` reads the `arrivo_theme_mode` / `arrivo_theme` cookies that the main site sets on `.ridearrivo.com`, so the journal opens in the mode the visitor chose there. The header toggle writes the same cookies.
+- Article drafts for both sides are in `content/*.article.json` (all drafts, `fact_checked: false`). Import them in Blog Studio, then review and publish.
