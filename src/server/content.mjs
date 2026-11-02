@@ -46,6 +46,7 @@ export function listingOptions(url) {
 }
 function searchConditions(options, where, args) {
   if (options.category) { where.push('category = ?'); args.push(options.category); }
+  else if (options.exclude_category) { where.push('category <> ?'); args.push(options.exclude_category); }
   if (options.query) { where.push("(title LIKE ? ESCAPE '\\' OR excerpt LIKE ? ESCAPE '\\' OR body LIKE ? ESCAPE '\\')"); const q = `%${options.query.replace(/[\\%_]/g, '\\$&')}%`; args.push(q, q, q); }
 }
 export async function publicFeed(db, options, now) {
