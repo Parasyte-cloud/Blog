@@ -1,4 +1,4 @@
-import { ORIENTATION, OFFERINGS, DRIVER_APPLY_URL, DRIVER_STEPS, DRIVER_CHECKLIST, DRIVER_FAQ, SOCIALS } from './offerings.mjs';
+import { BOOK_RIDE_URL, ORIENTATION, OFFERINGS, DRIVER_APPLY_URL, DRIVER_STEPS, DRIVER_CHECKLIST, DRIVER_FAQ, SOCIALS } from './offerings.mjs';
 const E = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const arrow = '<span aria-hidden="true">&#8599;</span>';
 const MAIN = 'https://www.ridearrivo.com';
@@ -16,7 +16,7 @@ export function servicesBand() {
 }
 
 export function waitingRoom() {
-  return `<section class="waiting" aria-labelledby="waiting-title"><div class="waiting-copy"><span class="eyebrow">NOT READY TO BOOK?</span><h2 id="waiting-title">Take a seat. Read a little. Ride when you are ready.</h2><p>We publish what is changing in Lagos transport so you can plan with confidence. When you want a ride, we are one tap away.</p><div class="waiting-actions"><a class="button" href="${MAIN}/book.html">Book a ride ${arrow}</a><a class="button ghost" href="https://wa.me/2348162706078">Chat on WhatsApp ${arrow}</a></div></div><div class="waiting-side"><h3>Follow RideArrivo</h3><ul class="social-list">${SOCIALS.map(([n, h]) => `<li><a href="${E(h)}" rel="noopener noreferrer">${E(n)} ${arrow}</a></li>`).join('')}<li><a href="/rss.xml">RSS feed</a></li></ul><p class="waiting-driver">Driving instead? <a href="/drivers">Go to the driver side</a>.</p></div></section>`;
+  return `<section class="waiting" aria-labelledby="waiting-title"><div class="waiting-copy"><span class="eyebrow">NOT READY TO BOOK?</span><h2 id="waiting-title">Take a seat. Read a little. Ride when you are ready.</h2><p>We publish what is changing in Lagos transport so you can plan with confidence. When you want a ride, we are one tap away.</p><div class="waiting-actions"><a class="button" href="${BOOK_RIDE_URL}">Book a ride ${arrow}</a><a class="button ghost" href="https://wa.me/2348162706078">Chat on WhatsApp ${arrow}</a></div></div><div class="waiting-side"><h3>Follow RideArrivo</h3><ul class="social-list">${SOCIALS.map(([n, h]) => `<li><a href="${E(h)}" rel="noopener noreferrer">${E(n)} ${arrow}</a></li>`).join('')}<li><a href="/rss.xml">RSS feed</a></li></ul><p class="waiting-driver">Driving instead? <a href="/drivers">Go to the driver side</a>.</p></div></section>`;
 }
 
 export function driverIntro() {

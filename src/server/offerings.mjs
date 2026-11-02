@@ -2,6 +2,7 @@
 // Keep every claim here traceable to the live RideArrivo website. When a product
 // changes status on the main site, change it here and nowhere else.
 const SITE = 'https://www.ridearrivo.com';
+export const BOOK_RIDE_URL = 'https://express.ridearrivo.com/express?mode=now';
 
 export const OFFERINGS = [
   {
@@ -16,7 +17,7 @@ export const OFFERINGS = [
     summary: 'Tap, get matched, go. ArrivoExpress is the on-demand way to move around Lagos.',
     best: 'Spur-of-the-moment trips across the city.',
     points: ['Pays from your RideArrivo Wallet, so you need a profile first.', 'Your fare is held in the wallet and refunded automatically if no driver accepts or if you cancel.', 'Driver rollout is still in progress, so scheduled rides are the dependable choice today.'],
-    status: 'Rolling out', cta: { label: 'Open ArrivoExpress', href: 'https://express.ridearrivo.com/express?mode=now' }
+    status: 'Rolling out', cta: { label: 'Open ArrivoExpress', href: BOOK_RIDE_URL }
   },
   {
     id: 'schedule', group: 'Ride', name: 'Schedule a ride', tag: 'Fixed fare, booked ahead',
