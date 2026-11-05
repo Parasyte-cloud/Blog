@@ -106,3 +106,32 @@ test('italic and lists cannot smuggle markup',()=>{
   const h=renderMarkdown('*<script>alert(1)</script>*\n\n1. <img src=x onerror=alert(1)>');
   assert.doesNotMatch(h,/<script|<img/);assert.match(h,/&lt;script&gt;/);
 });
+
+import {plainText,clip,seoTitle} from '../src/server/render.mjs';
+test('search titles and descriptions are plain, short and never carry Markdown marks',()=>{
+  assert.equal(plainText('## **Hello** _world_ [link](https://x.test)'),'Hello world link');
+  assert.equal(seoTitle('**A short title**'),'A short title | RideArrivo Journal');
+  const long=seoTitle('Uber has left Nigeria so what happens next for riders and drivers in Lagos');
+  assert.ok(long.length<=62,long);assert.ok(!long.includes('|'));
+  const d=clip('word '.repeat(80),158);assert.ok(d.length<=158);assert.ok(d.endsWith('…'));
+});
+test('article carries complete search and social metadata',async t=>{
+  const f=setup(t);
+  await f.send('/api/studio/posts',{method:'POST',as:'editor',data:{...SAMPLE,title:'**A calmer arrival**',status:'published',fact_checked:true,cover_alt:'',excerpt:'**Thoughtful** planning for your next journey to Lagos, with _clear_ steps.'}});
+  const html=await (await f.send('/stories/'+SAMPLE.slug,{as:null,origin:null})).text();
+  assert.match(html,/<title>A calmer arrival \| RideArrivo Journal<\/title>/);
+  assert.match(html,/<meta name="description" content="Thoughtful planning for your next journey to Lagos, with clear steps\.">/);
+  assert.match(html,/content="index,follow,max-image-preview:large/);
+  for(const tag of ['twitter:title','twitter:description','twitter:image','og:image:alt','og:locale'])assert.ok(html.includes(tag),tag);
+  const ld=JSON.parse(/<script type="application\/ld\+json">(.*?)<\/script>/s.exec(html)[1]);
+  const post=ld['@graph'].find(n=>n['@type']==='BlogPosting'),crumbs=ld['@graph'].find(n=>n['@type']==='BreadcrumbList');
+  assert.equal(post.headline,'A calmer arrival');assert.equal(post.inLanguage,'en-NG');assert.ok(post.wordCount>5);assert.ok(post.publisher.logo.url.startsWith('https://'));
+  assert.equal(crumbs.itemListElement.length,3);
+});
+test('sitemap lists listing pages with a last modified date',async t=>{
+  const f=setup(t);
+  await f.send('/api/studio/posts',{method:'POST',as:'editor',data:{...SAMPLE,status:'published',fact_checked:true}});
+  const xml=await (await f.send('/sitemap.xml',{as:null,origin:null})).text();
+  assert.match(xml,/<loc>https:\/\/blog\.ridearrivo\.com\/<\/loc><lastmod>/);
+  assert.match(xml,/<loc>https:\/\/blog\.ridearrivo\.com\/stories\/a-calmer-arrival<\/loc><lastmod>/);
+});
