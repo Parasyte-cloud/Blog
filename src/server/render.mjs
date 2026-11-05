@@ -10,13 +10,14 @@ function safeLink(value) {
 }
 function inline(value) {
   // A small, deliberately restricted Markdown grammar. Raw HTML never executes.
-  const pattern = /(`[^`\n]+`|\*\*[^*\n]+\*\*|\[[^\]\n]+\]\([^\s)]+\))/g;
+  const pattern = /(`[^`\n]+`|\*\*[^*\n]+\*\*|\[[^\]\n]+\]\([^\s)]+\)|\*[^*\s](?:[^*\n]*[^*\s])?\*|(?<![\w])_[^_\s](?:[^_\n]*[^_\s])?_(?![\w]))/g;
   let html = '', offset = 0;
   for (const match of value.matchAll(pattern)) {
     html += E(value.slice(offset, match.index));
     const token = match[0];
     if (token[0] === '`') html += `<code>${E(token.slice(1,-1))}</code>`;
     else if (token.startsWith('**')) html += `<strong>${E(token.slice(2,-2))}</strong>`;
+    else if (token[0] === '*' || token[0] === '_') html += `<em>${E(token.slice(1,-1))}</em>`;
     else {
       const parts = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(token);
       const href = safeLink(parts[2]);
@@ -28,18 +29,20 @@ function inline(value) {
 }
 export function markdownParts(body) {
   const lines = String(body || '').replace(/\r\n?/g,'\n').split('\n');
-  let html = '', paragraph = [], list = [], code = [], fenced = false, index = 0;
+  let html = '', paragraph = [], list = [], ordered = [], code = [], fenced = false, index = 0;
   const headings = [];
-  const flush = () => { if (paragraph.length) { html += `<p>${inline(paragraph.join(' '))}</p>`; paragraph = []; } if (list.length) { html += `<ul>${list.map(v=>`<li>${inline(v)}</li>`).join('')}</ul>`; list = []; } };
+  const flush = () => { if (paragraph.length) { html += `<p>${inline(paragraph.join(' '))}</p>`; paragraph = []; } if (list.length) { html += `<ul>${list.map(v=>`<li>${inline(v)}</li>`).join('')}</ul>`; list = []; } if (ordered.length) { html += `<ol>${ordered.map(v=>`<li>${inline(v)}</li>`).join('')}</ol>`; ordered = []; } };
   for (const line of lines) {
     if (/^```/.test(line)) { flush(); if (fenced) { html += `<pre><code>${E(code.join('\n'))}</code></pre>`; code=[]; } fenced=!fenced; continue; }
     if (fenced) { code.push(line); continue; }
-    const heading=/^(#{1,3})\s+(.+)$/.exec(line);
-    if (heading) { flush(); const level=Math.max(2,heading[1].length),id=`section-${++index}`; headings.push({id,title:heading[2]}); html += `<h${level} id="${id}">${inline(heading[2])}</h${level}>`; }
-    else if (/^[-*]\s+/.test(line)) { if (paragraph.length) flush(); list.push(line.replace(/^[-*]\s+/,'')); }
+    const heading=/^(#{1,4})\s+(.+)$/.exec(line);
+    if (heading) { flush(); const level=Math.max(2,heading[1].length),id=`section-${++index}`,lead=heading[1].length===1?' class="lead"':''; headings.push({id,title:heading[2]}); html += `<h${level} id="${id}"${lead}>${inline(heading[2])}</h${level}>`; }
+    else if (/^(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) { flush(); html += '<hr>'; }
+    else if (/^[-*]\s+/.test(line)) { if (paragraph.length||ordered.length) flush(); list.push(line.replace(/^[-*]\s+/,'')); }
+    else if (/^\d{1,3}[.)]\s+/.test(line)) { if (paragraph.length||list.length) flush(); ordered.push(line.replace(/^\d{1,3}[.)]\s+/,'')); }
     else if (/^>\s?/.test(line)) { flush(); html += `<blockquote><p>${inline(line.replace(/^>\s?/,''))}</p></blockquote>`; }
     else if (!line.trim()) flush();
-    else { if (list.length) flush(); paragraph.push(line); }
+    else { if (list.length||ordered.length) flush(); paragraph.push(line); }
   }
   flush(); if (code.length) html += `<pre><code>${E(code.join('\n'))}</code></pre>`;
   return { html, headings };

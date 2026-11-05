@@ -89,3 +89,20 @@ test('journey images do not compete with the hero for initial bandwidth', async 
   assert.equal((journey.match(/loading="lazy"/g)||[]).length,5);
   assert.doesNotMatch(journey,/loading="eager"/);
 });
+
+test('Markdown renders H1 to H4, italic, numbered lists and dividers',()=>{
+  const h=renderMarkdown('# Lead\n\n## Section\n\n### Sub\n\n#### Minor\n\nSome *italic* and _also italic_ and **bold** text, snake_case_name stays.\n\n1. First\n2. Second\n\n- Bullet\n\n---\n\nEnd');
+  assert.match(h,/<h2 id="section-1" class="lead">Lead<\/h2>/);
+  assert.match(h,/<h2 id="section-2">Section<\/h2>/);
+  assert.match(h,/<h3 id="section-3">Sub<\/h3>/);
+  assert.match(h,/<h4 id="section-4">Minor<\/h4>/);
+  assert.match(h,/<em>italic<\/em>/);assert.match(h,/<em>also italic<\/em>/);assert.match(h,/<strong>bold<\/strong>/);
+  assert.match(h,/snake_case_name/);assert.doesNotMatch(h,/<em>case<\/em>/);
+  assert.match(h,/<ol><li>First<\/li><li>Second<\/li><\/ol>/);
+  assert.match(h,/<ul><li>Bullet<\/li><\/ul>/);
+  assert.match(h,/<hr>/);
+});
+test('italic and lists cannot smuggle markup',()=>{
+  const h=renderMarkdown('*<script>alert(1)</script>*\n\n1. <img src=x onerror=alert(1)>');
+  assert.doesNotMatch(h,/<script|<img/);assert.match(h,/&lt;script&gt;/);
+});
