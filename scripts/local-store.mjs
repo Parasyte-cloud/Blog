@@ -27,7 +27,7 @@ export class LocalDatabase {
     }
   }
   withSession(){return this;}
-  prepare(sql){const db=this.sqlite;const statement=(args=[])=>({bind(...values){return statement(values);},async first(col){const row=db.prepare(sql).get(...args)??null;return col&&row?row[col]:row;},async all(){return {success:true,results:db.prepare(sql).all(...args)};},async run(){const r=db.prepare(sql).run(...args);return {success:true,meta:{changes:Number(r.changes)}};}});return statement();}
+  prepare(sql){const db=this.sqlite;const statement=(args=[])=>({bind(...values){return statement(values);},async first(col){const row=db.prepare(sql).get(...args)??null;return col&&row?row[col]:row;},async all(){return {success:true,results:db.prepare(sql).all(...args)};},async run(){const t=()=>Number(db.prepare('SELECT total_changes() AS n').get().n);const before=t();db.prepare(sql).run(...args);return {success:true,meta:{changes:t()-before}};}});return statement();}
   async batch(statements){this.sqlite.exec('BEGIN');try{const out=[];for(const stmt of statements)out.push(await stmt.run());this.sqlite.exec('COMMIT');return out;}catch(e){this.sqlite.exec('ROLLBACK');throw e;}}
 }
 export class LocalImages {

@@ -9,7 +9,7 @@ export class LocalD1 {
       bind(...values){return make(values);},
       async first(column){const row=db.prepare(sql).get(...args) ?? null;return column&&row?row[column]:row;},
       async all(){return {success:true,results:db.prepare(sql).all(...args)};},
-      async run(){const r=db.prepare(sql).run(...args);return {success:true,results:[],meta:{changes:Number(r.changes)}};},
+      async run(){const t=()=>Number(db.prepare('SELECT total_changes() AS n').get().n);const before=t();db.prepare(sql).run(...args);/* D1 reports rows written by triggers too, so mirror it with total_changes() */return {success:true,results:[],meta:{changes:t()-before}};},
     });
     return make();
   }

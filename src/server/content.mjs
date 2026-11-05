@@ -97,8 +97,11 @@ export async function savePost(db,input,current,identity,now) {
     if (!current) {
       await db.prepare(`INSERT INTO ra_blog_posts (id,${fields.join(',')},author_id,author_name,updated_by,created_at,updated_at,ever_published) VALUES (${Array(fields.length+7).fill('?').join(',')})`).bind(id,...values,identity.employee_id,identity.full_name,identity.employee_id,timestamp,timestamp,publicHistory).run();
     } else {
-      const result=await db.prepare(`UPDATE ra_blog_posts SET ${fields.map(f=>`${f}=?`).join(',')},updated_by=?,updated_at=?,ever_published=?,version=version+1 WHERE id=? AND version=?`).bind(...values,identity.employee_id,timestamp,publicHistory,id,input.version).run();
-      if (result.meta.changes!==1) throw new HttpError(409,'Another editor saved first. Reload the article before saving again.');
+      // Do not trust meta.changes here. D1 counts rows written by triggers, and ra_blog_revision_update
+      // inserts a revision row, so a successful save reports 2 changes. RETURNING tells us whether
+      // our own row was updated, whatever triggers also did.
+      const updated=await db.prepare(`UPDATE ra_blog_posts SET ${fields.map(f=>`${f}=?`).join(',')},updated_by=?,updated_at=?,ever_published=?,version=version+1 WHERE id=? AND version=? RETURNING id,version`).bind(...values,identity.employee_id,timestamp,publicHistory,id,input.version).first();
+      if (!updated || updated.version!==input.version+1) throw new HttpError(409,'Another editor saved first. Reload the article before saving again.');
     }
   } catch(error) {
     if (String(error.message).includes('UNIQUE constraint failed: ra_blog_posts.slug')) throw new HttpError(409,'That article slug is already in use. Choose another.');

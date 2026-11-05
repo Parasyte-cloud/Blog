@@ -183,3 +183,15 @@ test('asset uploads imports and relationship changes are recorded in the editori
   assert.ok(body.events.some(e=>e.event==='imported'&&e.title==='Audit import'));
   assert.equal(JSON.stringify(body).includes('Imported audit body'),false);
 });
+
+test('save succeeds when the database counts trigger writes as changes (D1 behaviour)',async t=>{
+  const f=setup(t);const p=await create(f);
+  const r=await f.send('/api/studio/posts/'+p.id,{method:'PATCH',data:{...SAMPLE,title:'Saved despite the revision trigger',version:1}});
+  assert.equal(r.status,200);
+  const post=(await r.json()).post;
+  assert.equal(post.version,2);
+  // a second save from the returned version must also work, because the client keeps that version
+  const again=await f.send('/api/studio/posts/'+p.id,{method:'PATCH',data:{...SAMPLE,title:'Saved a second time in a row',version:post.version}});
+  assert.equal(again.status,200);
+  assert.equal((await again.json()).post.version,3);
+});
