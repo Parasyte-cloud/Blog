@@ -95,7 +95,7 @@
 .back-link,.article-meta,.article-meta small{font-size:14px}
 .prose{font-size:20px;line-height:1.8}
 .prose p{max-width:68ch}
-.prose h2{font-size:30px}
+.prose h2{font-size:30px}.prose h2.lead{font-size:clamp(34px,4.4vw,44px);line-height:1.12}.prose h3{font-size:23px}.prose h4{font-size:18px;letter-spacing:.02em}.prose em{font-style:italic}.prose ol{padding-left:1.4em}.prose hr{border:0;border-top:1px solid var(--line);margin:34px 0}
 
 /* Waiting room */
 .waiting{max-width:1336px;margin:70px auto 0;padding:34px;display:grid;grid-template-columns:1.4fr 1fr;gap:34px;border:1px solid var(--line);border-radius:20px;background:var(--panel)}
