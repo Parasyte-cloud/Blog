@@ -7,6 +7,52 @@ export function dbFor(env) {
 export const readingMinutes = body => Math.max(1, Math.ceil(String(body || '').trim().split(/\s+/).length / 220));
 export function editorView(row, identity) { return { ...row, fact_checked: Boolean(row.fact_checked), ever_published: Boolean(row.ever_published), can_edit: mayEdit(identity, row), reading_minutes: readingMinutes(row.body) }; }
 export function slugify(value) { return String(value || '').normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').replace(/-+/g,'-'); }
+
+/* --- Driver topic tags --- */
+export async function listTags(db) {
+  const result = await db.prepare('SELECT t.id,t.slug,t.label,COUNT(DISTINCT CASE WHEN p.category=\'For drivers\' AND p.status IN (\'published\',\'scheduled\') THEN p.id END) AS post_count FROM ra_blog_tags t LEFT JOIN ra_blog_post_tags pt ON pt.tag_id=t.id LEFT JOIN ra_blog_posts p ON p.id=pt.post_id GROUP BY t.id ORDER BY t.label,t.id').all();
+  return result.results;
+}
+export async function createTag(db, label, identity, now) {
+  const clean = String(label || '').trim().slice(0, 60);
+  if (!clean) throw new HttpError(400, 'Enter a topic name.');
+  const slug = slugify(clean);
+  if (!slug) throw new HttpError(400, 'That topic name has no usable letters or numbers.');
+  const existing = await db.prepare('SELECT id,slug,label FROM ra_blog_tags WHERE slug=?').bind(slug).first();
+  if (existing) return existing;
+  const id = crypto.randomUUID();
+  try {
+    await db.prepare('INSERT INTO ra_blog_tags (id,slug,label,created_by,created_at) VALUES (?,?,?,?,?)').bind(id, slug, clean, identity.employee_id, now.toISOString()).run();
+  } catch (error) {
+    if (String(error.message).includes('UNIQUE constraint failed')) return db.prepare('SELECT id,slug,label FROM ra_blog_tags WHERE slug=?').bind(slug).first();
+    throw error;
+  }
+  return { id, slug, label: clean };
+}
+export async function tagsForPost(db, postId) {
+  const result = await db.prepare('SELECT t.id,t.slug,t.label FROM ra_blog_post_tags pt JOIN ra_blog_tags t ON t.id=pt.tag_id WHERE pt.post_id=? ORDER BY t.label,t.id').bind(postId).all();
+  return result.results;
+}
+export async function setPostTags(db, postId, tagIds, now) {
+  const ids = Array.isArray(tagIds) ? [...new Set(tagIds.filter(isUuid))].slice(0, 12) : [];
+  const existing = await db.prepare('SELECT id FROM ra_blog_tags WHERE id IN (' + (ids.map(() => '?').join(',') || "''") + ')').bind(...ids).all();
+  const valid = new Set(existing.results.map(r => r.id));
+  const keep = ids.filter(id => valid.has(id));
+  const statements = [db.prepare('DELETE FROM ra_blog_post_tags WHERE post_id=?').bind(postId)];
+  for (const tagId of keep) statements.push(db.prepare('INSERT INTO ra_blog_post_tags (post_id,tag_id,created_at) VALUES (?,?,?)').bind(postId, tagId, now.toISOString()));
+  await db.batch(statements);
+  return keep;
+}
+export async function publicTagPosts(db, tagSlug, options, now) {
+  const tag = await db.prepare('SELECT id,slug,label FROM ra_blog_tags WHERE slug=?').bind(tagSlug).first();
+  if (!tag) return null;
+  const where = ['p.category=?', 'pt.tag_id=?', 'p.status IN (\'published\',\'scheduled\')', 'p.published_at IS NOT NULL', 'p.published_at<=?'], args = ['For drivers', tag.id, now.toISOString()];
+  if (options.query) { where.push("(p.title LIKE ? ESCAPE '\\' OR p.excerpt LIKE ? ESCAPE '\\' OR p.body LIKE ? ESCAPE '\\')"); const q = `%${options.query.replace(/[\\%_]/g, '\\$&')}%`; args.push(q, q, q); }
+  const clause = where.join(' AND ');
+  const count = await db.prepare(`SELECT COUNT(*) n FROM ra_blog_posts p JOIN ra_blog_post_tags pt ON pt.post_id=p.id WHERE ${clause}`).bind(...args).first();
+  const rows = await db.prepare(`SELECT p.* FROM ra_blog_posts p JOIN ra_blog_post_tags pt ON pt.post_id=p.id WHERE ${clause} ORDER BY p.published_at DESC,p.id LIMIT ? OFFSET ?`).bind(...args, options.page_size, (options.page - 1) * options.page_size).all();
+  return { tag, total: count.n, posts: rows.results.map(publicView), page: options.page, page_size: options.page_size, query: options.query };
+}
 export function preparePostInput(input, current, identity, now, id) {
   const requested = input?.content_type ?? current?.content_type ?? 'article';
   if (requested !== 'quick_post') return { ...input, content_type: requested };
@@ -107,7 +153,9 @@ export async function savePost(db,input,current,identity,now) {
     if (String(error.message).includes('UNIQUE constraint failed: ra_blog_posts.slug')) throw new HttpError(409,'That article slug is already in use. Choose another.');
     throw error;
   }
-  return editorView(await db.prepare('SELECT * FROM ra_blog_posts WHERE id=?').bind(id).first(),identity);
+  if (Array.isArray(input.tags)) await setPostTags(db, id, input.tags, now);
+  const saved = editorView(await db.prepare('SELECT * FROM ra_blog_posts WHERE id=?').bind(id).first(),identity);
+  return { ...saved, tags: await tagsForPost(db, id) };
 }
 export async function removePost(db,post,input,identity,now) {
   if (post.status!=='archived') throw new HttpError(409,'Archive the article before permanently deleting it.');
