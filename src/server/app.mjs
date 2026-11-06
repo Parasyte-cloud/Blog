@@ -1,6 +1,6 @@
 import { HttpError, CATEGORIES, MAX_IMAGE_BYTES, MAX_ASSET_BYTES, isUuid, sniffImage, validateOrigin, validateAssetUpload, sanitizeFilename } from './policy.mjs';
 import { authorize, workspaceRpc } from './auth.mjs';
-import { dbFor, listingOptions, publicFeed, publicPost, publicView, listEditorial, ownedPost, editorView, savePost, removePost, VISIBLE_SQL, assetView, listAssets, getAsset, createAssetRecord, linkAsset, unlinkAsset, createImportedDraft, listPostAssets, setAssetPublication, deleteAssetRecord } from './content.mjs';
+import { dbFor, listingOptions, publicFeed, publicPost, publicView, listEditorial, ownedPost, editorView, savePost, removePost, VISIBLE_SQL, assetView, listAssets, getAsset, createAssetRecord, linkAsset, unlinkAsset, createImportedDraft, listPostAssets, setAssetPublication, deleteAssetRecord, listTags, createTag, tagsForPost, publicTagPosts } from './content.mjs';
 const json=(body,status=200)=>Response.json(body,{status});
 export async function readBytes(request,max) {
   const length=request.headers.get('Content-Length');
@@ -36,6 +36,17 @@ async function studio(request,env,services,url) {
   const {identity,permissions}=await authorize(request,env,services.fetch);
   const path=url.pathname.replace(/\/$/,'');const method=request.method;
   if(path==='/api/studio/me' && method==='GET')return json({identity,permissions,categories:CATEGORIES});
+  if(path==='/api/studio/tags'){
+    requirePermission(permissions.write);
+    if(method==='GET')return json({tags:await listTags(dbFor(env))});
+    if(method==='POST'){
+      requirePermission(permissions.publish);
+      const input=await readJson(request);
+      const tag=await createTag(dbFor(env),input.label,identity,services.now());
+      return json({tag},201);
+    }
+    throw new HttpError(405,'Method not allowed.');
+  }
   if(path==='/api/studio/access' || path==='/api/studio/access-audit'){
     requirePermission(permissions.manage_access);
     if(method==='GET')return json({people: path.endsWith('access-audit') ? undefined : await workspaceRpc(request,env,'workspace_blog_people',{p_query:(url.searchParams.get('q')||'').slice(0,100)},services.fetch),events:path.endsWith('access-audit')?await workspaceRpc(request,env,'workspace_blog_access_log',{},services.fetch):undefined});
@@ -70,7 +81,7 @@ async function studio(request,env,services,url) {
       const result=await db.prepare('SELECT id,version,event,actor_id,snapshot,created_at FROM ra_blog_revisions WHERE post_id=? ORDER BY version DESC,created_at DESC LIMIT 50').bind(post.id).all();
       return json({revisions:result.results.map(r=>({...r,snapshot:JSON.parse(r.snapshot)}))});
     }
-    if(method==='GET')return json({post:editorView(post,identity)});
+    if(method==='GET')return json({post:{...editorView(post,identity),tags:await tagsForPost(db,post.id)}});
     if(method==='PATCH')return json({post:await savePost(db,await readJson(request),post,identity,now)});
     if(method==='DELETE'){await removePost(db,post,await readJson(request),identity,now);return json({ok:true});}
     throw new HttpError(405,'Method not allowed.');
